@@ -15,6 +15,11 @@ const connection = mysql.createConnection({
     // Be sure to update with your own MySQL password!
     password: 'BigPeach',
     database: 'employeeDB',
+  })
+  connection.connect(function(err){
+      if (err) throw err;
+      console.log("Database connected")
+      start()
   });
 
 // enter department
@@ -38,10 +43,13 @@ async function startMenu() {
             type: 'list',
             message: 'What would you like to do?',
             choices: [
-                { value: 'department', name: 'Create a department' },
-                { value: 'role', name: 'Create a role' },
-                { value: 'employee', name: 'Create a employee' },
-                { value: 'exit', name: 'Begone' },
+                { value: 'newdepartment', name: 'Create a department' },
+                { value: 'newrole', name: 'Create a role' },
+                { value: 'newemployee', name: 'Create an employee' },
+                { value: 'viewdepartment', name: 'View a department' },
+                { value: 'viewrole', name: 'View a role' },
+                { value: 'viewemployee', name: 'View an employee' },
+                { value: 'exit', name: 'Exit' },
             ],
             name: 'startMenu'
         }
@@ -54,19 +62,46 @@ async function startMenu() {
     // go to different function depending on response
     console.log(response);
     switch (response.startMenu) {
-        case 'department':
+        case 'newdepartment':
             await createDepartment();
             break;
-        case 'role':
+        case 'newrole':
             await createRole();
             break;
-        case 'employee':
+        case 'newemployee':
             await createEmployee();
             break;
+        case 'viewdepartment':
+            await viewDepartment();
+            break;
+        case 'viewrole':
+            await viewRole();
+            break;
+        case 'viewemployee':
+            await viewEmployee();
+            break;
+            
         default:
             console.log('Unexpected value!', response)
     }
 };
+
+function createDepartment() {
+    inquirer.prompt([
+        {
+            type: 'input',
+            message: 'Enter department name.',
+            name: 'departmentName'
+        }
+    ])
+    .then((response) => {
+        connection.query('INSERT INTO department (name) VALUES (?)', response.departmentName, (error, res) => {
+            if (error) throw error
+            console.log('Department added.');
+            startMenu();
+        })
+    })
+}
 
 // const queryPromised = util.promisify(connection.query)
 
@@ -77,11 +112,7 @@ async function startMenu() {
 // department ID
 async function createRole() {
     const query = 'SELECT * FROM department';
-    // const replacements = [ answer.artist ];
 
-    // connection.query(query, replacements, (err, res) => {
-    //     // do stuff after query
-    // });
 
     const res = await new Promise((resolve, reject) => {
         connection.query(query, (err, res) => {
@@ -95,8 +126,6 @@ async function createRole() {
     });
     // do stuff after query
 
-    // const res = queryPromised(query);
-    // do stuff after query
 
     if(!res.length) {
         console.log('Sorry! No departments found!')
@@ -169,8 +198,8 @@ async function createEmployee() {
     ])
 }
 
-start().then(() => {
-    console.log('All done!');
-}).catch((error) => {
-    console.error('Whoops!', error);
-})
+// start().then(() => {
+//     console.log('All done!');
+// }).catch((error) => {
+//     console.error('Whoops!', error);
+// })
