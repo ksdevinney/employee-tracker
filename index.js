@@ -5,22 +5,22 @@ const util = require('util');
 
 const connection = mysql.createConnection({
     host: 'localhost',
-  
+
     // Your port; if not 3306
     port: 3306,
-  
+
     // Your username
     user: 'root',
-  
+
     // Be sure to update with your own MySQL password!
     password: 'BigPeach',
     database: 'employeeDB',
-  })
-  connection.connect(function(err){
-      if (err) throw err;
-      console.log("Database connected")
-      start()
-  });
+})
+connection.connect(function (err) {
+    if (err) throw err;
+    console.log("Database connected")
+    start()
+});
 
 // enter department
 // id
@@ -28,11 +28,11 @@ const connection = mysql.createConnection({
 
 async function start() {
     const response = await inquirer.prompt([
-    {
-        type: 'input',
-        message: 'Team name?',
-        name: 'team',
-    }])
+        {
+            type: 'input',
+            message: 'Team name?',
+            name: 'team',
+        }])
     teamName = response.team;
     await startMenu()
 }
@@ -80,9 +80,9 @@ async function startMenu() {
         case 'viewemployee':
             await viewEmployee();
             break;
-            
+
         default:
-            console.log('Unexpected value!', response)
+            process.exit(0);
     }
 };
 
@@ -94,13 +94,13 @@ function createDepartment() {
             name: 'departmentName'
         }
     ])
-    .then((response) => {
-        connection.query('INSERT INTO department (name) VALUES (?)', response.departmentName, (error, res) => {
-            if (error) throw error
-            console.log('Department added.');
-            startMenu();
+        .then((response) => {
+            connection.query('INSERT INTO department (name) VALUES (?)', response.departmentName, (error, res) => {
+                if (error) throw error
+                console.log('Department added.');
+                startMenu();
+            })
         })
-    })
 }
 
 // const queryPromised = util.promisify(connection.query)
@@ -111,7 +111,7 @@ function createDepartment() {
 // salary
 // department ID
 async function createRole() {
-    const query = 'SELECT * FROM department';
+    const query = 'SELECT id,name FROM department';
 
 
     const res = await new Promise((resolve, reject) => {
@@ -119,7 +119,14 @@ async function createRole() {
             if (err) {
                 reject(err);
             } else {
-                resolve(res);
+                let dept =[]
+                for(let i=0; i<res.length; i++){
+                    dept.push({
+                        name: res[i].name,
+                        value:res[i].id
+                    })
+                }
+                resolve(dept);
             }
             // do stuff after query
         });
@@ -127,19 +134,13 @@ async function createRole() {
     // do stuff after query
 
 
-    if(!res.length) {
+    if (!res.length) {
         console.log('Sorry! No departments found!')
-        await startMenu();
+        startMenu();
         return;
-    } 
+    }
 
     const response = await inquirer.prompt([
-        {   
-            // not sure I need this?
-            type: 'number',
-            message: 'Enter the id number for this role.',
-            name: 'roleId'
-        },
         {
             type: 'input',
             message: 'Enter the title of the role.',
@@ -158,7 +159,13 @@ async function createRole() {
         }
     ])
 
-console.log(response);
+    console.log(response);
+    connection.query('INSERT INTO role (title, salary, departmentid) VALUES (? , ? , ?)', [response.role, response.salary, response.roleDepartment],
+    (error, res) => {
+        if (error) throw error
+        console.log('Role added.');
+        startMenu();
+    })
 }
 
 // create employee
@@ -172,30 +179,39 @@ async function createEmployee() {
         {
             type: 'number',
             message: 'Enter the id number for this employee.',
-            name: 'employeeId'  
+            name: 'employeeId'
         },
         {
             type: 'input',
             message: 'Enter the first name of this employee',
-            name: 'firstName'  
+            name: 'firstName'
         },
         {
             type: 'input',
             message: 'Enter the last name of this employee',
-            name: 'lastName'  
+            name: 'lastName'
         },
         {
             type: 'list',
             message: 'What is the role of this employee?', // list based on role variable response
             choices: '[role]',
-            name: 'employeeRole'  
+            name: 'employeeRole'
         },
         {
             type: 'input',
             message: 'Who is the manager?',
-            name: 'employeeManager'  
+            name: 'employeeManager'
         },
     ])
+}
+
+function viewDepartment() {
+    connection.query('SELECT * FROM department;' , (error, res) => {
+        if (error) throw error
+        console.log('Department');
+        console.log(res)
+        startMenu();
+    })
 }
 
 // start().then(() => {
