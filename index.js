@@ -214,6 +214,24 @@ function viewDepartment() {
     })
 }
 
+function viewRole() {
+    connection.query('SELECT * FROM role;' , (error, res) => {
+        if (error) throw error
+        console.log('Role');
+        console.log(res)
+        startMenu();
+    })
+}
+
+function viewEmployee() {
+    connection.query('SELECT * FROM employee;' , (error, res) => {
+        if (error) throw error
+        console.log('Employee');
+        console.log(res)
+        startMenu();
+    })
+}
+
 // start().then(() => {
 //     console.log('All done!');
 // }).catch((error) => {
