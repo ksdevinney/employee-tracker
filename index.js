@@ -177,11 +177,6 @@ async function createRole() {
 async function createEmployee() {
     const response = await inquirer.prompt([
         {
-            type: 'number',
-            message: 'Enter the id number for this employee.',
-            name: 'employeeId'
-        },
-        {
             type: 'input',
             message: 'Enter the first name of this employee',
             name: 'firstName'
@@ -192,9 +187,8 @@ async function createEmployee() {
             name: 'lastName'
         },
         {
-            type: 'list',
-            message: 'What is the role of this employee?', // list based on role variable response
-            choices: '[role]',
+            type: 'input',
+            message: 'What is the role of this employee?', 
             name: 'employeeRole'
         },
         {
@@ -203,6 +197,13 @@ async function createEmployee() {
             name: 'employeeManager'
         },
     ])
+    console.log(response);
+    connection.query('INSERT INTO employee (firstname, lastname, roleid, departmentid) VALUES (? , ? , ?, ?)', [response.firstName, response.lastName, response.employeeRole, response.employeeManager],
+    (error, res) => {
+        if (error) throw error
+        console.log('Role added.');
+        startMenu();
+    })
 }
 
 function viewDepartment() {
@@ -227,7 +228,7 @@ function viewEmployee() {
     connection.query('SELECT * FROM employee;' , (error, res) => {
         if (error) throw error
         console.log('Employee');
-        console.log(res)
+        console.table(res)
         startMenu();
     })
 }
