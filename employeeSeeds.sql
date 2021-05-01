@@ -26,5 +26,3 @@ CREATE TABLE employee (
   managerId INT NULL,
   PRIMARY KEY (id)
 );
-
-INSERT INTO department (name) VALUES ("blorp"), ("doodle"), ("beep")

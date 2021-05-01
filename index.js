@@ -30,7 +30,7 @@ async function start() {
     const response = await inquirer.prompt([
         {
             type: 'input',
-            message: 'Team name?',
+            message: 'Company name?',
             name: 'team',
         }])
     teamName = response.team;
@@ -175,6 +175,34 @@ async function createRole() {
 // role id (=6)
 // manager id (refers to another employee)
 async function createEmployee() {
+    const query = 'SELECT * FROM role';
+
+    const res = await new Promise((resolve, reject) => {
+        connection.query(query, (err, res) => {
+            if (err) {
+                reject(err);
+            } else {
+                let roles = []
+                for(let i=0; i<res.length; i++){
+                    roles.push({
+                        name: res[i].name,
+                        value: res[i].id
+                    })
+                }
+                resolve(roles);
+            }
+            // do stuff after query
+        });
+    });
+    // do stuff after query
+
+
+    if (!res.length) {
+        console.log('Sorry! No jobs defined!')
+        startMenu();
+        return;
+    }
+
     const response = await inquirer.prompt([
         {
             type: 'input',
@@ -187,21 +215,17 @@ async function createEmployee() {
             name: 'lastName'
         },
         {
-            type: 'input',
-            message: 'What is the role of this employee?', 
+            type: 'list',
+            message: 'What is the role of this employee?',
+            choices: res, 
             name: 'employeeRole'
-        },
-        {
-            type: 'input',
-            message: 'Who is the manager?',
-            name: 'employeeManager'
-        },
+        }
     ])
     console.log(response);
-    connection.query('INSERT INTO employee (firstname, lastname, roleid, departmentid) VALUES (? , ? , ?, ?)', [response.firstName, response.lastName, response.employeeRole, response.employeeManager],
+    connection.query('INSERT INTO employee (firstname, lastname, roleid) VALUES (? , ? , ?)', [response.firstName, response.lastName, response.employeeRole],
     (error, res) => {
         if (error) throw error
-        console.log('Role added.');
+        console.log('Employee added.');
         startMenu();
     })
 }
@@ -210,7 +234,7 @@ function viewDepartment() {
     connection.query('SELECT * FROM department;' , (error, res) => {
         if (error) throw error
         console.log('Department');
-        console.log(res)
+        console.table(res)
         startMenu();
     })
 }
@@ -219,7 +243,7 @@ function viewRole() {
     connection.query('SELECT * FROM role;' , (error, res) => {
         if (error) throw error
         console.log('Role');
-        console.log(res)
+        console.table(res)
         startMenu();
     })
 }
