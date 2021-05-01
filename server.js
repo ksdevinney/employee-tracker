@@ -104,23 +104,6 @@ function createDepartment() {
         })
 }
 
-async function asyncQuery(query, replacements) {
-    return new Promise((resolve, reject) => {
-        const callback = (err, res) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(res);
-            }
-        };
-        if (replacements != null) {
-            connection.query(query, replacements, callback);
-        } else {
-            connection.query(query, callback);
-        }
-    });
-}
-
 // const queryPromised = util.promisify(connection.query)
 
 // create role
@@ -132,34 +115,24 @@ async function createRole() {
     const query = 'SELECT id,name FROM department';
 
 
-    // const res = await new Promise((resolve, reject) => {
-    //     connection.query(query, (err, res) => {
-    //         if (err) {
-    //             reject(err);
-    //         } else {
-    //             let dept =[]
-    //             for(let i=0; i<res.length; i++){
-    //                 dept.push({
-    //                     name: res[i].name,
-    //                     value:res[i].id
-    //                 })
-    //             }
-    //             resolve(dept);
-    //         }
-    //         // do stuff after query
-    //     });
-    // });
+    const res = await new Promise((resolve, reject) => {
+        connection.query(query, (err, res) => {
+            if (err) {
+                reject(err);
+            } else {
+                let dept =[]
+                for(let i=0; i<res.length; i++){
+                    dept.push({
+                        name: res[i].name,
+                        value:res[i].id
+                    })
+                }
+                resolve(dept);
+            }
+            // do stuff after query
+        });
+    });
     // do stuff after query
-    const res = await asyncQuery(query);
-    let dept =[]
-    for(let i=0; i<res.length; i++){
-        dept.push({
-            name: res[i].name,
-            value:res[i].id
-        })
-    }
-    resolve(dept);
-
 
     if (!res.length) {
         console.log('Sorry! No departments found!')
