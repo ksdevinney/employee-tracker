@@ -49,6 +49,7 @@ async function startMenu() {
                 { value: 'viewdepartment', name: 'View a department' },
                 { value: 'viewrole', name: 'View a role' },
                 { value: 'viewemployee', name: 'View an employee' },
+                // update an employee
                 { value: 'exit', name: 'Exit' },
             ],
             name: 'startMenu'
@@ -103,6 +104,23 @@ function createDepartment() {
         })
 }
 
+async function asyncQuery(query, replacements) {
+    return new Promise((resolve, reject) => {
+        const callback = (err, res) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(res);
+            }
+        };
+        if (replacements != null) {
+            connection.query(query, replacements, callback);
+        } else {
+            connection.query(query, callback);
+        }
+    });
+}
+
 // const queryPromised = util.promisify(connection.query)
 
 // create role
@@ -114,24 +132,33 @@ async function createRole() {
     const query = 'SELECT id,name FROM department';
 
 
-    const res = await new Promise((resolve, reject) => {
-        connection.query(query, (err, res) => {
-            if (err) {
-                reject(err);
-            } else {
-                let dept =[]
-                for(let i=0; i<res.length; i++){
-                    dept.push({
-                        name: res[i].name,
-                        value:res[i].id
-                    })
-                }
-                resolve(dept);
-            }
-            // do stuff after query
-        });
-    });
+    // const res = await new Promise((resolve, reject) => {
+    //     connection.query(query, (err, res) => {
+    //         if (err) {
+    //             reject(err);
+    //         } else {
+    //             let dept =[]
+    //             for(let i=0; i<res.length; i++){
+    //                 dept.push({
+    //                     name: res[i].name,
+    //                     value:res[i].id
+    //                 })
+    //             }
+    //             resolve(dept);
+    //         }
+    //         // do stuff after query
+    //     });
+    // });
     // do stuff after query
+    const res = await asyncQuery(query);
+    let dept =[]
+    for(let i=0; i<res.length; i++){
+        dept.push({
+            name: res[i].name,
+            value:res[i].id
+        })
+    }
+    resolve(dept);
 
 
     if (!res.length) {
@@ -231,7 +258,7 @@ async function createEmployee() {
 }
 
 function viewDepartment() {
-    connection.query('SELECT * FROM department;' , (error, res) => {
+    connection.query('SELECT * FROM department' , (error, res) => {
         if (error) throw error
         console.log('Department');
         console.table(res)
@@ -240,7 +267,7 @@ function viewDepartment() {
 }
 
 function viewRole() {
-    connection.query('SELECT * FROM role;' , (error, res) => {
+    connection.query('SELECT role.id, title, salary, name AS department FROM role LEFT JOIN department ON department.id = role.departmentId;' , (error, res) => {
         if (error) throw error
         console.log('Role');
         console.table(res)
@@ -249,7 +276,7 @@ function viewRole() {
 }
 
 function viewEmployee() {
-    connection.query('SELECT * FROM employee;' , (error, res) => {
+    connection.query('SELECT employee.id, employee.firstName, employee.lastName, CONCAT(manager.firstName, " ", manager.lastName) AS manager, role.title, role.salary, department.name AS department FROM employee LEFT JOIN role ON employee.roleId = role.id LEFT JOIN department ON department.id = role.departmentId LEFT JOIN employee AS manager ON employee.managerId = manager.id;' , (error, res) => {
         if (error) throw error
         console.log('Employee');
         console.table(res)
