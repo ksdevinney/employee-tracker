@@ -4,7 +4,7 @@ const mysql = require('mysql');
 const util = require('util');
 
 const connection = mysql.createConnection({
-    host: 'localhost',
+    host: '127.0.0.1',
 
     // Your port; if not 3306
     port: 3306,
@@ -13,7 +13,7 @@ const connection = mysql.createConnection({
     user: 'root',
 
     // Be sure to update with your own MySQL password!
-    password: 'BigPeach',
+    // password: 'BigPeach',
     database: 'employeeDB',
 })
 connection.connect(function (err) {
@@ -83,7 +83,6 @@ async function startMenu() {
             break;
         case 'updateEmployee':
             await pickEmployee();
-            await updateEmployee();
             break;
         default:
             process.exit(0);
@@ -171,6 +170,19 @@ async function createRole() {
     })
 }
 
+async function listRoles(){
+    const query = 'SELECT id, title FROM role';
+
+    const res = await asyncQuery(query);
+    let roles = []
+    for(let i=0; i<res.length; i++){
+        roles.push({
+            name: res[i].title,
+            value: res[i].id
+        })
+    }
+}
+
 // create employee
 // id
 // first name
@@ -178,32 +190,6 @@ async function createRole() {
 // role id (=6)
 // manager id (refers to another employee)
 async function createEmployee() {
-    const query = 'SELECT id, title FROM role';
-
-    const res = await new Promise((resolve, reject) => {
-        connection.query(query, (err, res) => {
-            if (err) {
-                reject(err);
-            } else {
-                let roles = []
-                for(let i=0; i<res.length; i++){
-                    roles.push({
-                        name: res[i].title,
-                        value: res[i].id
-                    })
-                }
-                resolve(roles);
-            }
-            // do stuff after query
-        });
-    });
-
-
-    if (!res.length) {
-        console.log('Sorry! No jobs defined!')
-        startMenu();
-        return;
-    }
 
     const response = await inquirer.prompt([
         {
@@ -219,7 +205,7 @@ async function createEmployee() {
         {
             type: 'list',
             message: 'What is the role of this employee?',
-            choices: res, 
+            choices: await listRoles, 
             name: 'employeeRole'
         }
     ])
@@ -259,7 +245,7 @@ function viewEmployee() {
     })
 }
 
-async function pickEmployee() {
+async function listEmployees(){
     const currentEmployees = 'SELECT id, firstName, lastName FROM employee';
 
     const employeeRes = await asyncQuery(managerQ);
@@ -270,15 +256,19 @@ async function pickEmployee() {
             value: res[i].id
         })
     }
+    return employees;
+}
 
-    await inquirer.prompt([
+async function pickEmployee() {
+    const response = await inquirer.prompt([
         {
             type: 'list',
             message: 'Update which employee?',
-            choices: employees,
+            choices: await listEmployees(),
             name: 'update'
         },
     ]);
+    await updateEmployee(response.update);
 };   
 
 async function asyncQuery(query, replacements) {
@@ -289,32 +279,16 @@ async function asyncQuery(query, replacements) {
             } else {
                 resolve(res);
             }
-            // do stuff after query
         });
     });
 }
 
 async function updateEmployee(employee) {
-    const query = 'SELECT id, title FROM role';
-
-    const res = await asyncQuery(query);
-    let roles = []
-    for(let i=0; i<res.length; i++){
-        roles.push({
-            name: res[i].title,
-            value: res[i].id
-        })
-    }
-
-    const managerQ = 'SELECT id, firstName, lastName FROM employee';
-
-    const managerRes = await asyncQuery(managerQ);
-    let managers = []
-    for(let i=0; i<res.length; i++){
-        managers.push({
-            name: res[i].firstName + ' ' + res[i].lastName,
-            value: res[i].id
-        })
+    const jobs = await listRoles();
+    if (!res.length) {
+        console.log('Sorry! No jobs defined!')
+        startMenu();
+        return;
     }
 
     const response = await inquirer.prompt([
@@ -331,13 +305,13 @@ async function updateEmployee(employee) {
         {
             type: 'list',
             message: 'New role for this employee?',
-            choices: roles,
+            choices: jobs,
             name: 'updateRole'
         },
         {
             type: 'list',
-            message: 'New manager for this employee?',
-            choices: managers,
+            message: 'Manager for this employee?',
+            choices: await listEmployees(),
             name: 'updateManager'
         },
     ])
