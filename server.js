@@ -46,10 +46,10 @@ async function startMenu() {
                 { value: 'newdepartment', name: 'Create a department' },
                 { value: 'newrole', name: 'Create a role' },
                 { value: 'newemployee', name: 'Create an employee' },
-                { value: 'viewdepartment', name: 'View a department' },
-                { value: 'viewrole', name: 'View a role' },
-                { value: 'viewemployee', name: 'View an employee' },
-                // update an employee
+                { value: 'viewdepartment', name: 'View current departments' },
+                { value: 'viewrole', name: 'View current roles' },
+                { value: 'viewemployee', name: 'View all employees' },
+                { value: 'updateEmployee', name: 'Update an employee' },
                 { value: 'exit', name: 'Exit' },
             ],
             name: 'startMenu'
@@ -81,7 +81,10 @@ async function startMenu() {
         case 'viewemployee':
             await viewEmployee();
             break;
-
+        case 'updateEmployee':
+            await pickEmployee();
+            await updateEmployee();
+            break;
         default:
             process.exit(0);
     }
@@ -175,7 +178,7 @@ async function createRole() {
 // role id (=6)
 // manager id (refers to another employee)
 async function createEmployee() {
-    const query = 'SELECT * FROM role';
+    const query = 'SELECT id, title FROM role';
 
     const res = await new Promise((resolve, reject) => {
         connection.query(query, (err, res) => {
@@ -185,7 +188,7 @@ async function createEmployee() {
                 let roles = []
                 for(let i=0; i<res.length; i++){
                     roles.push({
-                        name: res[i].name,
+                        name: res[i].title,
                         value: res[i].id
                     })
                 }
@@ -194,7 +197,6 @@ async function createEmployee() {
             // do stuff after query
         });
     });
-    // do stuff after query
 
 
     if (!res.length) {
@@ -257,8 +259,87 @@ function viewEmployee() {
     })
 }
 
-// start().then(() => {
-//     console.log('All done!');
-// }).catch((error) => {
-//     console.error('Whoops!', error);
-// })
+async function pickEmployee() {
+    const currentEmployees = 'SELECT id, firstName, lastName FROM employee';
+
+    const employeeRes = await asyncQuery(managerQ);
+    let employees = []
+    for(let i=0; i<res.length; i++){
+        employees.push({
+            name: res[i].firstName + ' ' + res[i].lastName,
+            value: res[i].id
+        })
+    }
+
+    await inquirer.prompt([
+        {
+            type: 'list',
+            message: 'Update which employee?',
+            choices: employees,
+            name: 'update'
+        },
+    ]);
+};   
+
+async function asyncQuery(query, replacements) {
+    return await new Promise((resolve, reject) => {
+        connection.query(query, replacements, (err, res) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(res);
+            }
+            // do stuff after query
+        });
+    });
+}
+
+async function updateEmployee(employee) {
+    const query = 'SELECT id, title FROM role';
+
+    const res = await asyncQuery(query);
+    let roles = []
+    for(let i=0; i<res.length; i++){
+        roles.push({
+            name: res[i].title,
+            value: res[i].id
+        })
+    }
+
+    const managerQ = 'SELECT id, firstName, lastName FROM employee';
+
+    const managerRes = await asyncQuery(managerQ);
+    let managers = []
+    for(let i=0; i<res.length; i++){
+        managers.push({
+            name: res[i].firstName + ' ' + res[i].lastName,
+            value: res[i].id
+        })
+    }
+
+    const response = await inquirer.prompt([
+        {
+            type: 'input',
+            message: 'Enter the first name of this employee',
+            name: 'firstName'
+        },
+        {
+            type: 'input',
+            message: 'Enter the last name of this employee',
+            name: 'lastName'
+        },
+        {
+            type: 'list',
+            message: 'New role for this employee?',
+            choices: roles,
+            name: 'updateRole'
+        },
+        {
+            type: 'list',
+            message: 'New manager for this employee?',
+            choices: managers,
+            name: 'updateManager'
+        },
+    ])
+    connection.query('UPDATE employee SET firstName = response.firstName, lastName = response.lastName, roleId = response.updateRole WHERE ?')
+};

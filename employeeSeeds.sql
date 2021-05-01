@@ -47,12 +47,12 @@ VALUES
 
 INSERT INTO employee (id, firstName, lastName, roleId, managerId)
 VALUES
-  (1, 'Joe', 'Guy', 1, null),
-  (2, 'Guy', 'Joe', 2, 1),
-  (3, 'Joe', 'Joe', 2, 1),
-  (4, 'Fred', 'Woman', 4, null),
-  (5, 'Alfred', 'Crow', 3, 4),
-  (6, 'Not', 'Joe', 3, 4),
-  (7, 'Onion', 'Joe', 5, null),
-  (8, 'Pie', 'Smith Jones Cartwright', 6, 7),
-  (9, 'Joe', 'Switch', 6, 7);
+  (1, 'Joe', 'Bethersonton', 1, null),
+  (2, 'Guy', 'Kramer', 2, 1),
+  (3, 'Elaine', 'Joe', 2, 1),
+  (4, 'Bill', 'Bailey', 4, null),
+  (5, 'Tammy', 'Swanson', 3, 4),
+  (6, 'Hank', 'Grill', 3, 4),
+  (7, 'Rusty', 'Shackleford', 5, null),
+  (8, 'George', 'Cartwright', 6, 7),
+  (9, 'Lester', 'Knorp', 6, 7);
