@@ -13,7 +13,7 @@ const connection = mysql.createConnection({
     user: 'root',
 
     // Be sure to update with your own MySQL password!
-    // password: 'BigPeach',
+    password: 'BigPeach',
     database: 'employeeDB',
 })
 connection.connect(function (err) {
@@ -180,7 +180,8 @@ async function listRoles(){
             name: res[i].title,
             value: res[i].id
         })
-    }
+    } 
+    return roles;
 }
 
 // create employee
@@ -205,7 +206,7 @@ async function createEmployee() {
         {
             type: 'list',
             message: 'What is the role of this employee?',
-            choices: await listRoles, 
+            choices: await listRoles(), 
             name: 'employeeRole'
         }
     ])
@@ -248,7 +249,7 @@ function viewEmployee() {
 async function listEmployees(){
     const currentEmployees = 'SELECT id, firstName, lastName FROM employee';
 
-    const employeeRes = await asyncQuery(managerQ);
+    const res = await asyncQuery(currentEmployees);
     let employees = []
     for(let i=0; i<res.length; i++){
         employees.push({
@@ -283,9 +284,9 @@ async function asyncQuery(query, replacements) {
     });
 }
 
-async function updateEmployee(employee) {
+async function updateEmployee(employeeId) {
     const jobs = await listRoles();
-    if (!res.length) {
+    if (!jobs.length) {
         console.log('Sorry! No jobs defined!')
         startMenu();
         return;
@@ -315,5 +316,6 @@ async function updateEmployee(employee) {
             name: 'updateManager'
         },
     ])
-    connection.query('UPDATE employee SET firstName = response.firstName, lastName = response.lastName, roleId = response.updateRole WHERE ?')
+    await asyncQuery('UPDATE employee SET firstName = ?, lastName = ?, roleId = ?, managerId = ? WHERE id = ?', [response.firstName, response.lastName, response.updateRole, response.updateManager, employeeId])
+    await startMenu();
 };
