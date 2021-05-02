@@ -61,7 +61,7 @@ async function startMenu() {
         // }
     ])
     // go to different function depending on response
-    console.log(response);
+    // console.log(response);
     switch (response.startMenu) {
         case 'newdepartment':
             await createDepartment();
@@ -161,7 +161,7 @@ async function createRole() {
         }
     ])
 
-    console.log(response);
+    // console.log(response);
     connection.query('INSERT INTO role (title, salary, departmentid) VALUES (? , ? , ?)', [response.role, response.salary, response.roleDepartment],
     (error, res) => {
         if (error) throw error
@@ -208,10 +208,16 @@ async function createEmployee() {
             message: 'What is the role of this employee?',
             choices: await listRoles(), 
             name: 'employeeRole'
-        }
+        },
+        {
+            type: 'list',
+            message: 'Manager for this employee?',
+            choices: await listEmployees(),
+            name: 'updateManager'
+        },
     ])
-    console.log(response);
-    connection.query('INSERT INTO employee (firstname, lastname, roleid) VALUES (? , ? , ?)', [response.firstName, response.lastName, response.employeeRole],
+    // console.log(response);
+    connection.query('INSERT INTO employee (firstname, lastname, roleid, managerId) VALUES (? , ? , ?, ?)', [response.firstName, response.lastName, response.employeeRole, response.updateManager],
     (error, res) => {
         if (error) throw error
         console.log('Employee added.');
