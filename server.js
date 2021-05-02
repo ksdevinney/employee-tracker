@@ -27,13 +27,13 @@ connection.connect(function (err) {
 // name
 
 async function start() {
-    const response = await inquirer.prompt([
-        {
-            type: 'input',
-            message: 'Company name?',
-            name: 'team',
-        }])
-    teamName = response.team;
+    // const response = await inquirer.prompt([
+    //     {
+    //         type: 'input',
+    //         message: 'Company name?',
+    //         name: 'team',
+    //     }])
+    // teamName = response.team;
     await startMenu()
 }
 
